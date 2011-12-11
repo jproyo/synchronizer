@@ -2,8 +2,8 @@ require 'rubygems'
 require 'eventmachine'
 
 module EchoServer  
-  def receive_data(data)
-    send_data(data)
+  def receive_data(data) 
+    p data
   end
 end
 

@@ -8,17 +8,20 @@ class ClientConnection
   def initialize(host, port)
     @host = host
     @port = port
-    if !EventMachine::reactor_running?
-	EventMachine::run do
-	  EventMachine::connect @host, @port, Sender
-	end
-    end
   end
 
   def send_data(data)
-    
+    if !EventMachine::reactor_running?
+	EventMachine::run do
+	  @handler = EventMachine::connect @host, @port, Sender
+	  @handler.sendPut
+	  @handler.sendData data
+	  @handler.closeConn
+    	end
+    end
   end
 
 end
 
-ClientConnection.new('localhost',8080)
+client = ClientConnection.new('localhost',8080)
+client.send_data ARGV

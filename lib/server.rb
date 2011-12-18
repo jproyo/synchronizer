@@ -3,7 +3,7 @@ require 'eventmachine'
 
 module EchoServer  
   def receive_data(data) 
-    p data
+    puts data
   end
 end
 

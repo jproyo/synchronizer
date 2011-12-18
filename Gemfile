@@ -1,7 +1,7 @@
-# A sample Gemfile
+# Gemfile for Syncronizer
 source "http://rubygems.org"
 
 gem "eventmachine"
 gem "rake"
 gem "bundler"
-# gem "rails"
+gem "ruby_protobuf"

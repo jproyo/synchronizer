@@ -1,0 +1,27 @@
+package Messages;
+
+message Helo {
+    required uint32 userId = 1;
+    required int32 chunkSize = 2;
+}
+
+message Put {
+    required bytes idTransaction = 1;
+    required uint32 msgSize = 2;
+    required bytes checkSum = 3;
+}
+
+message Ack {
+    required uint32 chunkNumber = 1;
+}
+
+message Data {
+    required uint32 chunkNumber = 1;
+    required bytes data = 2;
+}
+
+message AckEnd {
+}
+
+message DropEnd {
+}

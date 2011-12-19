@@ -10,14 +10,23 @@ class ClientConnection
     @port = port
   end
 
+  def connect
+    if !@handler
+	@handler = EventMachine::connect @host, @port, Sender
+    end
+    if @handler.error?
+	@handler = EventMachine::connect @host, @port, Sender
+    end
+  end
+
   def send_data(data)
     if !EventMachine::reactor_running?
-	EventMachine::run do
-	  @handler = EventMachine::connect @host, @port, Sender
-	  @handler.sendPut
-	  @handler.sendData data
-	  @handler.closeConn
-    	end
+    	EventMachine::run do
+		connect
+		@handler.sendPut
+		@handler.sendData data
+		@handler.closeConn
+	end
     end
   end
 
@@ -25,3 +34,6 @@ end
 
 client = ClientConnection.new('localhost',8080)
 client.send_data ARGV
+while true 
+	client.send_data ["Juan Carlos Cadorna"]
+end

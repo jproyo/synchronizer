@@ -34,7 +34,7 @@ class Sender < EventMachine::Connection
   end
   
   def receive_data(data)
-    @data << data
+    @data = data
     puts @data
   end
 

@@ -23,17 +23,22 @@ class ClientConnection
     if !EventMachine::reactor_running?
     	EventMachine::run do
 		connect
-		@handler.sendPut
+		puts "Numero de Conexiones #{EventMachine::connection_count}"
+		@handler.sendPut 
 		@handler.sendData data
 		@handler.closeConn
 	end
     end
   end
-
+  
 end
 
 client = ClientConnection.new('localhost',8080)
-client.send_data ARGV
-while true 
-	client.send_data ["Juan Carlos Cadorna"]
+i = 0
+data = []
+while i < ARGV[0].to_i
+	data << "Hola mundo"
+	i = i + 1
 end
+client.send_data data
+

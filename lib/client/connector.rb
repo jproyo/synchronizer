@@ -75,8 +75,9 @@ class Sender < EventMachine::Connection
 	@ack = ack
 	p ack
     end
-    if @ack.chunkNumber >= @index 
-	@fin = true
+    if @ack.chunkNumber > @index
+	puts "I am more advanced...."
+	@index = @ack.chunkNumber
     end
     sendData
   end

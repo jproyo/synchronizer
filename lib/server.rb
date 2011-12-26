@@ -6,7 +6,7 @@ require "#{path}/data/message_protocol.pb"
 module EchoServer 
   
   def post_init
-	@data = []
+	@data = Hash.new
   end
  
   def receive_data(data)
@@ -30,7 +30,7 @@ module EchoServer
 	end
 	begin
 		data = Messages::Data.new.parse_from_string(bytes)
-		@data << data
+		@data[data.chunkNumber] = data
 		p data
 		ack = Messages::Ack.new
 		ack.chunkNumber = data.chunkNumber

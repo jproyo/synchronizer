@@ -44,6 +44,9 @@ class Sender < EventMachine::Connection
 		@number += 1
 	end
 	@buffered_window.clear
+    else
+	@fin = true
+	close_connection_after_writing
     end
   end
   
@@ -85,6 +88,7 @@ class Sender < EventMachine::Connection
 	send_init_data
     else
     	puts 'Finish. Closing connection.'
+	EventMachine::stop_event_loop
     end
   end
 end

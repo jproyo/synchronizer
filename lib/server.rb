@@ -3,7 +3,12 @@ require 'eventmachine'
 path = File.dirname(__FILE__)
 require "#{path}/data/message_protocol.pb"
 
-module EchoServer  
+module EchoServer 
+  
+  def post_init
+	@data = []
+  end
+ 
   def receive_data(data)
     BufferedTokenizer.new("MSG").extract(data).each do |msg|
     	process msg
@@ -13,17 +18,24 @@ module EchoServer
   def process(bytes)
 	begin
 		helo = Messages::Helo.new.parse_from_string(bytes)
-		p helo
+		@hello = helo
+		p @hello
 		rescue Exception
 	end
 	begin
 		put = Messages::Put.new.parse_from_string(bytes)
-		p put
+		@put = put
+		p @put
 		rescue Exception
 	end
 	begin
 		data = Messages::Data.new.parse_from_string(bytes)
+		@data << data
 		p data
+		ack = Messages::Ack.new
+		ack.chunkNumber = data.chunkNumber
+		send_data ack.to_s 
+		send_data "MSG"
 		rescue Exception
 	end
   end

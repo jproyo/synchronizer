@@ -10,24 +10,13 @@ class ClientConnection
     @port = port
   end
 
-  def connect
-    if !@handler
-	@handler = EventMachine::connect @host, @port, Sender
-    end
-    if @handler.error?
-	@handler = EventMachine::connect @host, @port, Sender
-    end
+  def connect(data)
+    @handler = EventMachine::connect @host, @port, Sender, data, @host, @port
   end
 
   def send_data(data)
-    if !EventMachine::reactor_running?
-    	EventMachine::run do
-		connect
-		puts "Numero de Conexiones #{EventMachine::connection_count}"
-		@handler.sendPut 
-		@handler.sendData data
-		@handler.closeConn
-	end
+    EventMachine::run do
+	connect data
     end
   end
   

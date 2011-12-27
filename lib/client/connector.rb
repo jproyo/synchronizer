@@ -39,7 +39,7 @@ class Sender < EventMachine::Connection
 	@buffered_window.each do |msg|
 		data = Messages::Data.new
 		data.chunkNumber = @number
-		data.data = msg
+		data.data = Marshal.dump(msg)
 		send_data data.to_s
 		@number += 1
 	end

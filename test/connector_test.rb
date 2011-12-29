@@ -1,12 +1,15 @@
 require 'test/unit'
+require 'mocha'
 path = File.dirname(__FILE__)
 require "#{path}/../lib/client/connector"
 
-class TestSender < Test::Unit::TestCcase
+class TestMessage < Test::Unit::TestCase
   
-  def test_hasmore
-    sender = Sender.new(["Hola"],"localhost", 9090)
-    assert_true sender.hasMore
+  def test_is_not_ack
+    ack = Messages::Ack.new
+    ack.chunkNumber = 1
+    ack.type = Messages::EndType::ACK_END 
+    assert ack.is_not_ack
   end
  
 end

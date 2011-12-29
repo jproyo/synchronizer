@@ -3,6 +3,12 @@ require 'eventmachine'
 path = File.dirname(__FILE__)
 require "#{path}/../data/message_protocol.pb"
 
+class Messages::Ack
+	def is_not_ack
+		type == Messages::EndType::ACK_END or type == Messages::EndType::DROP_END
+	end
+end
+
 class Sender < EventMachine::Connection
 
   def initialize *args
@@ -28,7 +34,7 @@ class Sender < EventMachine::Connection
   def sendHelo
     helo = Messages::Helo.new
     helo.userId = 54
-    helo.chunkSize = 544
+    helo.chunkSize = 1
     send_data helo.to_s
   end
   
@@ -44,20 +50,21 @@ class Sender < EventMachine::Connection
 		@number += 1
 	end
 	@buffered_window.clear
-    else
-	@fin = true
-	close_connection_after_writing
     end
   end
   
   def hasMore
-	(@index < @complete_window.length) or (@buffered_window and not @buffered_window.empty?)
+	if @buffered_window
+		not @buffered_window.empty?
+	else
+		false
+	end
   end
 
   def sendPut
 	put = Messages::Put.new
 	put.idTransaction = rand(0...1000).to_s
-	put.msgSize = 1111
+	put.msgSize = @complete_window.length
 	put.checkSum = "AB3123AB3213212313"
 	send_data put.to_s
   end
@@ -74,12 +81,18 @@ class Sender < EventMachine::Connection
         ack = Messages::Ack.new.parse_from_string(msg)
 	@ack = ack
 	p ack
+	if ack.is_not_ack
+		@fin = true
+		puts "Process Finished!!!" if ack.type == Messages::EndType::ACK_END
+		puts "There have been problems with the transfer. Please resend the data" if ack.type == Messages::EndType::DROP_END
+		close_connection_after_writing
+	end
     end
-    if @ack.chunkNumber > @index
-	puts "I am more advanced...."
+    if not @fin and @ack.chunkNumber > @index
+	puts "Ack #{@ack.chunkNumber}. Moving window forward"
 	@index = @ack.chunkNumber
     end
-    sendData
+    sendData if not @fin
   end
 
   def unbind 

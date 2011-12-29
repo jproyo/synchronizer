@@ -15,6 +15,7 @@
 # 
 # message Ack {
 #     required uint32 chunkNumber = 1;
+#     required EndType type = 2 [default = ACK];
 # }
 # 
 # message Data {
@@ -22,10 +23,10 @@
 #     required bytes data = 2;
 # }
 # 
-# message AckEnd {
-# }
-# 
-# message DropEnd {
+# enum EndType {
+#     ACK = 1;
+#     ACK_END = 2;
+#     DROP_END = 3;
 # }
 
 require 'protobuf/message/message'
@@ -48,16 +49,17 @@ module Messages
   class Ack < ::Protobuf::Message
     defined_in __FILE__
     required :uint32, :chunkNumber, 1
+    required :EndType, :type, 2, :default => :ACK
   end
   class Data < ::Protobuf::Message
     defined_in __FILE__
     required :uint32, :chunkNumber, 1
     required :bytes, :data, 2
   end
-  class AckEnd < ::Protobuf::Message
+  class EndType < ::Protobuf::Enum
     defined_in __FILE__
-  end
-  class DropEnd < ::Protobuf::Message
-    defined_in __FILE__
+    ACK = value(:ACK, 1)
+    ACK_END = value(:ACK_END, 2)
+    DROP_END = value(:DROP_END, 3)
   end
 end

@@ -18,8 +18,8 @@ module EchoServer
   def process(bytes)
 	begin
 		helo = Messages::Helo.new.parse_from_string(bytes)
-		@hello = helo
-		p @hello
+		@helo = helo
+		p @helo
 		rescue Exception
 	end
 	begin
@@ -34,10 +34,24 @@ module EchoServer
 		p data
 		ack = Messages::Ack.new
 		ack.chunkNumber = data.chunkNumber
+		ack.type = Messages::EndType::ACK
+		puts "Seding ack #{ack.chunkNumber}"
 		send_data ack.to_s 
 		send_data "MSG"
+		if data.chunkNumber == amountChunks
+			puts "Seding fin_ack"
+			fin_ack = Messages::Ack.new
+			fin_ack.chunkNumber = data.chunkNumber
+			fin_ack.type = Messages::EndType::ACK_END
+			send_data fin_ack.to_s
+			send_data "MSG"
+		end
 		rescue Exception
 	end
+  end
+
+  def amountChunks
+	@put.msgSize % @helo.chunkSize == 0 ? (@put.msgSize/@helo.chunkSize)-1 : @put.msgSize/@helo.chunkSize
   end
 
   def unbind

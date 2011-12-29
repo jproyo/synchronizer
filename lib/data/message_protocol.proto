@@ -13,6 +13,7 @@ message Put {
 
 message Ack {
     required uint32 chunkNumber = 1;
+    required EndType type = 2 [default = ACK];
 }
 
 message Data {
@@ -20,8 +21,8 @@ message Data {
     required bytes data = 2;
 }
 
-message AckEnd {
-}
-
-message DropEnd {
+enum EndType {
+    ACK = 1;
+    ACK_END = 2;
+    DROP_END = 3;
 }

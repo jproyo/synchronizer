@@ -2,7 +2,6 @@ require 'rubygems'
 require 'eventmachine'
 path = File.dirname(__FILE__)
 require "#{path}/../data/message_protocol.pb"
-require "#{path}/decoder"
 
 class Messages::Ack
 	def is_not_ack?
@@ -17,6 +16,8 @@ class Messages::Ack
 end
 
 class Sender < EventMachine::Connection
+
+  $TOKEN = "MSG"
 
   def initialize *args
 	super
@@ -80,18 +81,20 @@ class Sender < EventMachine::Connection
   def send_data(data)
 	if not error?	
 		super data
-		super "MSG"
+		super $TOKEN
 	end
   end
 
   def receive_data(data)
-    deco_data = Decoder.decode data
-    @ack = deco_data[:ack]
-    if @ack.is_not_ack?
-      @fin = true
-      $LOG.debug "Process Finished!!!" if @ack.is_end?
-      $LOG.error "There have been problems with the transfer. Please resend the data" if @ack.is_drop?
-      finish_handshake
+    BufferedTokenizer.new($TOKEN).extract(data).each do |msg|
+        @ack = Messages::Ack.new.parse_from_string(msg)
+        $LOG.debug "Recibing ACK #{@ack.chunkNumber}"
+    	if @ack.is_not_ack?
+	      @fin = true
+	      $LOG.debug "Process Finished!!!" if @ack.is_end?
+	      $LOG.error "There have been problems with the transfer. Please resend the data" if @ack.is_drop?
+	      finish_handshake
+	end
     end
     if not @fin and @ack.chunkNumber > @index
 	$LOG.debug "Ack #{@ack.chunkNumber}. Moving window forward"

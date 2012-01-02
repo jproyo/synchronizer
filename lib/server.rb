@@ -1,7 +1,10 @@
 require 'rubygems'
 require 'eventmachine'
+require 'logger'
 path = File.dirname(__FILE__)
 require "#{path}/data/message_protocol.pb"
+
+$LOG = Logger.new('server_log.log','daily')
 
 module EchoServer 
   
@@ -19,27 +22,27 @@ module EchoServer
 	begin
 		helo = Messages::Helo.new.parse_from_string(bytes)
 		@helo = helo
-		p @helo
+		$LOG.debug "Receive HELO message #{@helo.userId}"
 		rescue Exception
 	end
 	begin
 		put = Messages::Put.new.parse_from_string(bytes)
 		@put = put
-		p @put
+		$LOG.debug "Receive PUT message #{@put.idTransaction}"
 		rescue Exception
 	end
 	begin
 		data = Messages::Data.new.parse_from_string(bytes)
 		@data[data.chunkNumber] = data
-		p data
+		$LOG.debug "Sending DATA #{data.chunkNumber}"
 		ack = Messages::Ack.new
 		ack.chunkNumber = data.chunkNumber
 		ack.type = Messages::EndType::ACK
-		puts "Seding ack #{ack.chunkNumber}"
+		$LOG.debug "Seding ack #{ack.chunkNumber}"
 		send_data ack.to_s 
 		send_data "MSG"
 		if data.chunkNumber == amountChunks
-			puts "Seding fin_ack"
+			$LOG.debug "Seding fin_ack"
 			fin_ack = Messages::Ack.new
 			fin_ack.chunkNumber = data.chunkNumber
 			fin_ack.type = Messages::EndType::ACK_END

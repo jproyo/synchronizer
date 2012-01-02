@@ -2,10 +2,17 @@ require 'rubygems'
 require 'eventmachine'
 path = File.dirname(__FILE__)
 require "#{path}/../data/message_protocol.pb"
+require "#{path}/decoder"
 
 class Messages::Ack
-	def is_not_ack
-		type == Messages::EndType::ACK_END or type == Messages::EndType::DROP_END
+	def is_not_ack?
+		is_end? or is_drop?		
+	end
+	def is_end?
+		type == Messages::EndType::ACK_END
+	end
+	def is_drop?
+		type == Messages::EndType::DROP_END
 	end
 end
 
@@ -16,6 +23,7 @@ class Sender < EventMachine::Connection
 	@complete_window = args[0]
 	@host = args[1]
 	@port = args[2]
+	@reconnect_timer = 5
   end
 
   def post_init
@@ -77,31 +85,38 @@ class Sender < EventMachine::Connection
   end
 
   def receive_data(data)
-    BufferedTokenizer.new("MSG").extract(data).each do |msg|
-        ack = Messages::Ack.new.parse_from_string(msg)
-	@ack = ack
-	p ack
-	if ack.is_not_ack
-		@fin = true
-		puts "Process Finished!!!" if ack.type == Messages::EndType::ACK_END
-		puts "There have been problems with the transfer. Please resend the data" if ack.type == Messages::EndType::DROP_END
-		close_connection_after_writing
-	end
+    deco_data = Decoder.decode data
+    @ack = deco_data[:ack]
+    if @ack.is_not_ack?
+      @fin = true
+      $LOG.debug "Process Finished!!!" if @ack.is_end?
+      $LOG.error "There have been problems with the transfer. Please resend the data" if @ack.is_drop?
+      finish_handshake
     end
     if not @fin and @ack.chunkNumber > @index
-	puts "Ack #{@ack.chunkNumber}. Moving window forward"
+	$LOG.debug "Ack #{@ack.chunkNumber}. Moving window forward"
 	@index = @ack.chunkNumber
     end
     sendData if not @fin
   end
+  
+  def finish_handshake
+	if @timer
+		@timer.cancel
+		@timer = nil
+	end
+	close_connection_after_writing
+  end
 
   def unbind 
-    if not @fin
-	puts "Connection was closed. Trying to reconnect...."
-    	reconnect @host, @port
-	send_init_data
-    else
-    	puts 'Finish. Closing connection.'
+    if not @fin and not @timer
+	@timer = EventMachine::PeriodicTimer.new(@reconnect_timer) do
+		$LOG.debug "Connetion has been lost. Trying to reconnect every #{@reconnect_timer} seconds.."
+    		reconnect @host, @port
+		send_init_data
+	end 
+    elsif not @timer
+    	$LOG.debug 'Finish. Closing connection.'
 	EventMachine::stop_event_loop
     end
   end

@@ -1,5 +1,7 @@
 require 'rubygems'
 require 'eventmachine'
+require 'digest/md5'
+require 'digest/sha1'
 path = File.dirname(__FILE__)
 require "#{path}/../data/message_protocol.pb"
 
@@ -43,7 +45,7 @@ class Sender < EventMachine::Connection
   def sendHelo
     helo = Messages::Helo.new
     helo.userId = 54
-    helo.chunkSize = 1
+    helo.chunkSize = @complete_window[@index].length
     send_data helo.to_s
   end
   
@@ -54,7 +56,7 @@ class Sender < EventMachine::Connection
 	@buffered_window.each do |msg|
 		data = Messages::Data.new
 		data.chunkNumber = @number
-		data.data = Marshal.dump(msg)
+		data.data = msg.pack('C*')
 		send_data data.to_s
 		@number += 1
 	end
@@ -72,9 +74,9 @@ class Sender < EventMachine::Connection
 
   def sendPut
 	put = Messages::Put.new
-	put.idTransaction = rand(0...1000).to_s
-	put.msgSize = @complete_window.length
-	put.checkSum = "AB3123AB3213212313"
+	put.idTransaction = Digest::SHA1.hexdigest(@complete_window.flatten.pack('C*'))
+	put.msgSize = @complete_window.flatten.length
+	put.checkSum = Digest::MD5.hexdigest(@complete_window.flatten.pack('C*'))
 	send_data put.to_s
   end
 

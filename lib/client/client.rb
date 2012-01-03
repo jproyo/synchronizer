@@ -18,19 +18,18 @@ class ClientConnection
   end
 
   def send_data(data)
+    complete_window = []
+    bytes_msgs = IO.read(data).unpack('C*').to_a
+    bytes_msgs.each_slice(10) do |slice|
+    	complete_window << slice
+    end
     EventMachine::run do
-	connect data
+	connect complete_window
     end
   end
   
 end
 
 client = ClientConnection.new('localhost',8080)
-i = 0
-data = []
-while i < ARGV[0].to_i
-	data << "Hola mundo"
-	i = i + 1
-end
-client.send_data data
+client.send_data "./Hola.txt"
 

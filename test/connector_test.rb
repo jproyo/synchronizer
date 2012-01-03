@@ -9,7 +9,7 @@ class TestMessage < Test::Unit::TestCase
     ack = Messages::Ack.new
     ack.chunkNumber = 1
     ack.type = Messages::EndType::ACK_END 
-    assert ack.is_not_ack
+    assert ack.is_not_ack?
   end
  
 end

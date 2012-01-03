@@ -4,6 +4,7 @@ require 'digest/md5'
 require 'digest/sha1'
 path = File.dirname(__FILE__)
 require "#{path}/../data/message_protocol.pb"
+require "#{path}/../protocol"
 
 class Messages::Ack
 	def is_not_ack?
@@ -17,9 +18,8 @@ class Messages::Ack
 	end
 end
 
-class Sender < EventMachine::Connection
-
-  $TOKEN = "MSG"
+class SenderHandler < EventMachine::Connection
+  include Protocol
 
   def initialize *args
 	super
@@ -46,7 +46,7 @@ class Sender < EventMachine::Connection
     helo = Messages::Helo.new
     helo.userId = 54
     helo.chunkSize = @complete_window[@index].length
-    send_data helo.to_s
+    send_msg helo.to_s
   end
   
   def sendData
@@ -57,7 +57,7 @@ class Sender < EventMachine::Connection
 		data = Messages::Data.new
 		data.chunkNumber = @number
 		data.data = msg.pack('C*')
-		send_data data.to_s
+		send_msg data.to_s
 		@number += 1
 	end
 	@buffered_window.clear
@@ -65,11 +65,11 @@ class Sender < EventMachine::Connection
   end
   
   def hasMore
-	if @buffered_window
-		not @buffered_window.empty?
-	else
-		false
-	end
+    if @buffered_window
+	not @buffered_window.empty?
+    else
+	false
+    end
   end
 
   def sendPut
@@ -77,24 +77,17 @@ class Sender < EventMachine::Connection
 	put.idTransaction = Digest::SHA1.hexdigest(@complete_window.flatten.pack('C*'))
 	put.msgSize = @complete_window.flatten.length
 	put.checkSum = Digest::MD5.hexdigest(@complete_window.flatten.pack('C*'))
-	send_data put.to_s
-  end
-
-  def send_data(data)
-	if not error?	
-		super data
-		super $TOKEN
-	end
+	send_msg put.to_s
   end
 
   def receive_data(data)
     BufferedTokenizer.new($TOKEN).extract(data).each do |msg|
         @ack = Messages::Ack.new.parse_from_string(msg)
-        $LOG.debug "Recibing ACK #{@ack.chunkNumber}"
+        $LOG.debug "Recibing #{@ack.type} - number #{@ack.chunkNumber}"
     	if @ack.is_not_ack?
 	      @fin = true
 	      $LOG.debug "Process Finished!!!" if @ack.is_end?
-	      $LOG.error "There have been problems with the transfer. Please resend the data" if @ack.is_drop?
+	      $LOG.debug "There have been problems with the transfer. Please resend the data" if @ack.is_drop?
 	      finish_handshake
 	end
     end
@@ -106,11 +99,11 @@ class Sender < EventMachine::Connection
   end
   
   def finish_handshake
-	if @timer
-		@timer.cancel
-		@timer = nil
-	end
-	close_connection_after_writing
+    if @timer
+	@timer.cancel
+	@timer = nil
+    end
+    close_connection_after_writing
   end
 
   def unbind 

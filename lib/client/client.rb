@@ -2,7 +2,7 @@ require 'rubygems'
 require 'eventmachine'
 require 'logger'
 path = File.dirname(__FILE__)
-require "#{path}/connector"
+require "#{path}/handler"
 
 $LOG = Logger.new('client_log.log','daily')
 
@@ -41,7 +41,7 @@ class ClientConnection
 
   private 
   def connect(data)
-  	EventMachine::connect @host, @port, Sender, data, @host, @port
+  	EventMachine::connect @host, @port, SenderHandler, data, @host, @port
   end
 
 end

@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'eventmachine'
 
+#Protocol Module 
 module Protocol
   
   $TOKEN = "MSG"

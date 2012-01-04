@@ -6,6 +6,9 @@ path = File.dirname(__FILE__)
 require "#{path}/../data/message_protocol.pb"
 require "#{path}/../protocol"
 
+#
+# Open the Ack Class to add Functionality
+#
 class Messages::Ack
 	def is_not_ack?
 		is_end? or is_drop?		
@@ -18,6 +21,7 @@ class Messages::Ack
 	end
 end
 
+#Handler of the Client
 class SenderHandler < EventMachine::Connection
   include Protocol
 

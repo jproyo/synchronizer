@@ -1,7 +1,6 @@
 require 'test/unit'
 require 'mocha'
-path = File.dirname(__FILE__)
-require "#{path}/../lib/client/connector"
+require "client/handler"
 
 class TestMessage < Test::Unit::TestCase
   

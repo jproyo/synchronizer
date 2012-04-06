@@ -2,9 +2,8 @@ require 'rubygems'
 require 'eventmachine'
 require 'digest/md5'
 require 'digest/sha1'
-path = File.dirname(__FILE__)
-require "#{path}/../data/message_protocol.pb"
-require "#{path}/../protocol"
+require 'data/message_protocol.pb'
+require 'protocol'
 
 #
 # Open the Ack Class to add Functionality

@@ -1,8 +1,7 @@
 require 'rubygems'
 require 'eventmachine'
 require 'logger'
-path = File.dirname(__FILE__)
-require "#{path}/handler"
+require 'client/handler'
 
 $LOG = Logger.new('client_log.log','daily')
 

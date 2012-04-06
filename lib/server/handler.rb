@@ -2,9 +2,8 @@ require 'rubygems'
 require 'eventmachine'
 require 'logger'
 require 'digest/md5'
-path = File.dirname(__FILE__)
-require "#{path}/../data/message_protocol.pb"
-require "#{path}/../protocol"
+require 'data/message_protocol.pb'
+require 'protocol'
 
 #
 # This is the Handler class of the Server Syncronizer Protocol

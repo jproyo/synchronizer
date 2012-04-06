@@ -25,25 +25,25 @@ class SyncronizerHandler < EventMachine::Connection
 
   #Parse from byte array into proper Protobuf Message Protocol
   def process(bytes)
-	begin
-		helo = Messages::Helo.new.parse_from_string(bytes)
-		@helo = helo
-		$LOG.debug "Receive HELO message #{@helo.userId} - #{@helo.chunkSize}"
-		rescue Exception
-	end
-	begin
-		put = Messages::Put.new.parse_from_string(bytes)
-		@put = put
-		IO.sysopen(@put.idTransaction, "w+") if not File.exist?(@put.idTransaction)
-		$LOG.debug "Receive PUT message #{@put.idTransaction} - #{@put.msgSize}"
-		rescue Exception
-	end
-	begin
-		data = Messages::Data.new.parse_from_string(bytes)
-		$LOG.debug "Receive DATA #{data.chunkNumber}"
-		processChunk data
-		rescue Exception
-	end
+  	begin
+  		helo = Messages::Helo.new.parse_from_string(bytes)
+  		@helo = helo
+  		$LOG.debug "Receive HELO message #{@helo.userId} - #{@helo.chunkSize}"
+  		rescue Exception
+  	end
+  	begin
+  		put = Messages::Put.new.parse_from_string(bytes)
+  		@put = put
+  		IO.sysopen(@put.idTransaction, "w+") if not File.exist?(@put.idTransaction)
+  		$LOG.debug "Receive PUT message #{@put.idTransaction} - #{@put.msgSize}"
+  		rescue Exception
+  	end
+  	begin
+  		data = Messages::Data.new.parse_from_string(bytes)
+  		$LOG.debug "Receive DATA #{data.chunkNumber}"
+  		processChunk data
+  		rescue Exception
+  	end
   end
 
   #Close connection event
@@ -94,7 +94,7 @@ class SyncronizerHandler < EventMachine::Connection
   #Write data into output
   def write_data(data)
     if last_chunk_number <= data.chunkNumber
-	IO.write(@put.idTransaction,data.data,data.chunkNumber*@helo.chunkSize)
+	   IO.write(@put.idTransaction,data.data,data.chunkNumber*@helo.chunkSize)
     end
   end
   
@@ -109,8 +109,8 @@ class SyncronizerHandler < EventMachine::Connection
     write_data data
     sendAck
     if is_end?
-	sendEnd if checksum_ok?
-	sendDrop if !checksum_ok?
+	   sendEnd if checksum_ok?
+	   sendDrop if !checksum_ok?
     end
   end
  

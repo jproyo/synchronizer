@@ -1,9 +1,8 @@
 # Gemfile for Synchronizer
 source "http://rubygems.org"
 
-gem "mocha"
-gem "test-unit"
-gem "eventmachine"
-gem "rake"
-gem "bundler"
-gem "ruby_protobuf"
+gem "rake", "~>0.9.2.2"
+gem "test-unit", "~>2.4.8"
+gem "mocha", "~>0.10.5"
+
+gemspec

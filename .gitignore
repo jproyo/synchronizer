@@ -2,3 +2,4 @@ client_log*
 server_log*
 *.log
 doc/*
+*.gem

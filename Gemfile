@@ -1,4 +1,4 @@
-# Gemfile for Syncronizer
+# Gemfile for Synchronizer
 source "http://rubygems.org"
 
 gem "mocha"

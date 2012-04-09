@@ -1,0 +1,2 @@
+Synchronizer is a Gem that allows you to sinchronize large amount of data efficently in networks with bad latency rates.
+It uses EventMachine as a Core and Protobuf to compress and send messages through network.

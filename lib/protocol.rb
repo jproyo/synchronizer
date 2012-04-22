@@ -8,8 +8,8 @@ module Protocol
 
   def send_msg(data)
     if not error?	
-	self.send_data data
-	self.send_data $TOKEN
+		self.send_data data
+		self.send_data $TOKEN
     end
   end
 end

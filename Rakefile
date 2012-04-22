@@ -13,7 +13,7 @@ Rake::TestTask.new("test_units") { |t|
 
 desc "Run Server Example"
 task :run_server => :test_units do
-	exec 'ruby -I lib lib/server/server.rb localhost 8080'
+	exec 'ruby -I lib examples/server_example.rb'
 end
 
 desc "Run Client Example. CHECK IF THE SERVER IS RUNNING!!!"
